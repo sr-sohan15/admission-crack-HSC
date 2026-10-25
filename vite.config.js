@@ -7,5 +7,5 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  base: "/admission-crack/", // গিটহ্যাব পেজের জন্য এটি জরুরি
+  base: "/admission-crack-HSC/", // গিটহ্যাব রিপোজিটরির নামের সাথে হুবহু মিল থাকতে হবে
 })
