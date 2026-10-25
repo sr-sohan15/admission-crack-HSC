@@ -1,14 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { scienceData } from '../../Data/Science/scienceData';
 import { FiBookOpen, FiArrowRight, FiCheckCircle, FiZap } from 'react-icons/fi';
-import { FaHeart } from 'react-icons/fa';
 import MissionTrackerModal from '../../Components/MissionTrackerModal';
-import LovePuzzleModal from '../../Components/LovePuzzleModal';
 
 const ScienceHome = () => {
   const subjectsList = scienceData?.subjects || [];
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="space-y-8 max-w-5xl w-full mx-auto py-2">
@@ -16,17 +13,6 @@ const ScienceHome = () => {
       {/* টপ ব্যানার */}
       <div className="bg-gradient-to-r from-emerald-50 via-slate-100 to-slate-100 dark:from-emerald-950 dark:via-slate-900 dark:to-slate-900 border border-emerald-500/30 rounded-3xl p-6 sm:p-9 space-y-4 shadow-xl relative transition-colors">
         
-        {/* লাভ বাটন (যা মোডাল ওপেন করবে) */}
-        <button 
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-pink-500/15 hover:bg-pink-500/25 border border-pink-500/40 text-pink-600 dark:text-pink-400 p-2.5 sm:px-3 sm:py-2 rounded-full transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 text-xs font-bold z-20"
-          title="Special Dedication ❤️"
-        >
-          <FaHeart className="text-pink-500 animate-pulse text-sm pointer-events-none" />
-          <span className="text-xs font-bold pointer-events-none">Special Dedication</span>
-        </button>
-
         <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1.5">
           <FiZap /> DU A Unit ক্র্যাশ কোর্স
         </span>
@@ -45,7 +31,7 @@ const ScienceHome = () => {
         <MissionTrackerModal />
       </div>
 
-      {/* বিষয় নির্বাচন সেকশন */}
+      {/* বিষয় নির্বাচন সেকশন */}
       <div className="space-y-4">
         <h3 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">বিষয় নির্বাচন ও ১০০% কমন শর্টকাট</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -82,14 +68,6 @@ const ScienceHome = () => {
         </div>
       </div>
 
-      {/* লাভ বাটন ক্লিক করলে যে সিক্রেট মোডালটি ওপেন হবে */}
-      <LovePuzzleModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSuccess={() => {
-          setIsModalOpen(false);
-        }}
-      />
     </div>
   );
 };

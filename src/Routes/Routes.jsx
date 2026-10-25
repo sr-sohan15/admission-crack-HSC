@@ -8,6 +8,10 @@ import SubjectHacks from "../Pages/SubjectHacks";
 import MockExam from "../Pages/MockExam";
 import Bookmarks from "../Pages/Bookmarks";
 import ErrorPage from "../Pages/ErrorPage";
+import ArtsHome from "../Pages/Arts/ArtsHome";
+import ArtsSubject from "../Pages/Arts/ArtsSubject";
+import ArtsMockExam from "../Pages/Arts/ArtsMockExam";
+import SuperSuggestion from "../Pages/Arts/SuperSuggestion"; // 👈 নতুন সুপার সাজেশন পেজ ইমপোর্ট করা হলো
 
 export const router = createBrowserRouter(
   [
@@ -35,6 +39,26 @@ export const router = createBrowserRouter(
         {
           path: "science/mock",
           element: <MockExam />,
+        },
+
+        {
+          path: "arts",
+          element: <ArtsHome />,
+        },
+
+        {
+          path: "arts/subject/:subjectId",
+          element: <ArtsSubject />,
+        },
+
+        {
+          path: "arts/suggestion/:subjectId", // 👈 নতুন সুপার সাজেশন রুট যোগ করা হলো
+          element: <SuperSuggestion />,
+        },
+
+        {
+          path: "arts/mock",
+          element: <ArtsMockExam />,
         },
 
         {

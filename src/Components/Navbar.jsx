@@ -50,7 +50,8 @@ const Navbar = ({ isDarkMode, toggleTheme }) => {
           {/* ডেস্কটপ মেনু লিঙ্ক */}
           <nav className="hidden md:flex items-center gap-4 lg:gap-6 text-xs lg:text-sm font-semibold whitespace-nowrap">
             <NavLink to="/" className={linkClass}>Home</NavLink>
-            <NavLink to="/science" className={linkClass}>Science (বিজ্ঞান)</NavLink>
+            <NavLink to="/science" end className={linkClass}>Science (বিজ্ঞান)</NavLink>
+            <NavLink to="/arts" end className={linkClass}>Arts (মানবিক)</NavLink>
             <NavLink to="/science/mock" className={linkClass}>মক টেস্ট</NavLink>
             <NavLink to="/bookmarks" className={({ isActive }) => isActive ? 'text-amber-500 dark:text-amber-400 font-bold border-b-2 border-amber-500 dark:border-amber-400 pb-1 flex items-center gap-1' : 'text-slate-600 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 transition-colors pb-1 flex items-center gap-1'}>
               <FiBookmark className="text-xs" /> রিভিশন হাব
@@ -73,6 +74,7 @@ const Navbar = ({ isDarkMode, toggleTheme }) => {
         <div className="md:hidden w-full bg-white dark:bg-slate-900 border-t border-b border-slate-200 dark:border-slate-800 px-4 py-3 space-y-1.5 shadow-lg">
           <NavLink to="/" onClick={closeMobileMenu} className="block px-3 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-emerald-500 dark:hover:text-emerald-400">Home</NavLink>
           <NavLink to="/science" onClick={closeMobileMenu} className="block px-3.5 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-emerald-500 dark:hover:text-emerald-400">Science (বিজ্ঞান)</NavLink>
+          <NavLink to="/arts" onClick={closeMobileMenu} className="block px-3.5 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-emerald-500 dark:hover:text-emerald-400">Arts (মানবিক)</NavLink>
           <NavLink to="/science/mock" onClick={closeMobileMenu} className="block px-3.5 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-emerald-500 dark:hover:text-emerald-400">মক টেস্ট</NavLink>
           <NavLink to="/bookmarks" onClick={closeMobileMenu} className="block px-3.5 py-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800">রিভিশন হাব</NavLink>
         </div>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { scienceData } from '../Data/Science/scienceData';
-import { FiClock, FiCheckCircle, FiXCircle, FiRotateCcw, FiAward, FiArrowLeft, FiBookOpen } from 'react-icons/fi';
+import { FiClock, FiCheckCircle, FiXCircle, FiRotateCcw, FiAward, FiArrowLeft, FiBookmark } from 'react-icons/fi';
+import { toast } from 'react-toastify';
 
 const shuffleArray = (array) => {
   const arr = [...array];
@@ -20,6 +21,16 @@ const MockExam = () => {
   const [timeLeft, setTimeLeft] = useState(25 * 60); 
   const [examStarted, setExamStarted] = useState(false);
   const [questionCount, setQuestionCount] = useState(25);
+  
+  // Bookmarks State
+  const [bookmarkedIds, setBookmarkedIds] = useState([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('chancehack-bookmarks');
+    if (saved) {
+      setBookmarkedIds(JSON.parse(saved));
+    }
+  }, []);
 
   const subjectsConfig = {
     biology: { name: 'জীববিজ্ঞান (Biology)', icon: '🧬' },
@@ -28,30 +39,30 @@ const MockExam = () => {
     higherMath: { name: 'উচ্চতর গণিত (Higher Math)', icon: '📐' }
   };
 
+  // ডেটা স্ট্রাকচার ফিক্স: subjects অ্যারে থেকে সঠিক সাবজেক্ট খুঁজে বের করা
   const getQuestionsForSubject = (subjKey) => {
-    const subjData = scienceData[subjKey];
+    // scienceData এর subjects অ্যারে থেকে আইডির মাধ্যমে সাবজেক্ট খোঁজা
+    const subjData = scienceData?.subjects?.find(sub => sub.id === subjKey);
+    
     if (!subjData) return [];
 
     let rawQuestions = [];
 
-    if (subjKey === 'biology') {
-      if (subjData.botany && Array.isArray(subjData.botany)) {
-        subjData.botany.forEach(ch => ch.questions && rawQuestions.push(...ch.questions));
+    const extractQuestions = (chaptersArray) => {
+      if (Array.isArray(chaptersArray)) {
+        chaptersArray.forEach(ch => {
+          if (ch.questions && Array.isArray(ch.questions)) {
+            rawQuestions.push(...ch.questions);
+          }
+        });
       }
-      if (subjData.zoology && Array.isArray(subjData.zoology)) {
-        subjData.zoology.forEach(ch => ch.questions && rawQuestions.push(...ch.questions));
-      }
-    } else {
-      ['firstPaper', 'secondPaper'].forEach(paperKey => {
-        if (subjData[paperKey] && Array.isArray(subjData[paperKey])) {
-          subjData[paperKey].forEach(ch => {
-            if (ch.questions && Array.isArray(ch.questions)) {
-              rawQuestions.push(...ch.questions);
-            }
-          });
-        }
-      });
-    }
+    };
+
+    extractQuestions(subjData.botany);
+    extractQuestions(subjData.zoology);
+    extractQuestions(subjData.firstPaper);
+    extractQuestions(subjData.secondPaper);
+    extractQuestions(subjData.chapters); 
 
     return rawQuestions;
   };
@@ -61,6 +72,13 @@ const MockExam = () => {
     setQuestionCount(count);
     
     const allRawQuestions = getQuestionsForSubject(subjKey);
+    
+    // যদি ডাটাবেসে কোনো প্রশ্ন না থাকে, তবে এলার্ট দেখাবে
+    if (allRawQuestions.length === 0) {
+      toast.error('এই সাবজেক্টে এখনো কোনো প্রশ্ন যোগ করা হয়নি!');
+      return;
+    }
+
     const actualCount = Math.min(count, allRawQuestions.length);
     const selected = shuffleArray(allRawQuestions).slice(0, actualCount);
 
@@ -129,6 +147,20 @@ const MockExam = () => {
     const mins = Math.floor(secs / 60);
     const remainingSecs = secs % 60;
     return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
+  };
+
+  const toggleBookmark = (qId) => {
+    if (!qId) return;
+    let updated;
+    if (bookmarkedIds.includes(qId)) {
+      updated = bookmarkedIds.filter(id => id !== qId);
+      toast.info('রিভিশন তালিকা থেকে সরানো হয়েছে');
+    } else {
+      updated = [...bookmarkedIds, qId];
+      toast.success('রিভিশন তালিকায় সেভ করা হয়েছে');
+    }
+    setBookmarkedIds(updated);
+    localStorage.setItem('chancehack-bookmarks', JSON.stringify(updated));
   };
 
   return (
@@ -208,18 +240,18 @@ const MockExam = () => {
               <Link to="/science" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-bold flex items-center gap-1">
                 <FiArrowLeft /> এক্সিট
               </Link>
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 border-l border-slate-200 dark:border-slate-800 pl-3">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 border-l border-slate-200 dark:border-slate-800 pl-3 hidden sm:inline">
                 সাবজেক্ট: <strong className="text-emerald-600 dark:text-emerald-400">{subjectsConfig[selectedSubjectKey]?.name}</strong>
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-300">
                 উত্তর: <strong className="text-emerald-600 dark:text-emerald-400">{Object.keys(userAnswers).length}</strong>/{examQuestions.length}
               </span>
 
               {!isSubmitted && (
-                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border ${
+                <div className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-xl text-[10px] sm:text-xs font-bold border ${
                   timeLeft < 300 
                     ? 'bg-red-50 dark:bg-red-950/60 border-red-500/40 text-red-600 dark:text-red-400 animate-pulse' 
                     : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400'
@@ -231,16 +263,16 @@ const MockExam = () => {
               {!isSubmitted ? (
                 <button
                   onClick={() => setIsSubmitted(true)}
-                  className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black rounded-xl cursor-pointer"
+                  className="px-3 sm:px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[10px] sm:text-xs font-black rounded-xl cursor-pointer"
                 >
-                  পরীক্ষা সাবমিট করো
+                  সাবমিট করো
                 </button>
               ) : (
                 <button
                   onClick={() => setExamStarted(false)}
-                  className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black rounded-xl flex items-center gap-1 cursor-pointer"
+                  className="px-3 sm:px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[10px] sm:text-xs font-black rounded-xl flex items-center gap-1 cursor-pointer"
                 >
-                  <FiRotateCcw /> হোম পেজে ফিরে যাও
+                  <FiRotateCcw /> ফিরে যাও
                 </button>
               )}
             </div>
@@ -253,25 +285,25 @@ const MockExam = () => {
                   <span className="text-xs text-emerald-700 dark:text-emerald-400 font-bold uppercase tracking-wider">টেস্ট সম্পন্ন হয়েছে</span>
                   <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5">মক টেস্ট রেজাল্ট শিট</h3>
                 </div>
-                <div className="bg-emerald-500 text-slate-950 px-5 py-2.5 rounded-2xl text-center shadow-lg shadow-emerald-500/20">
+                <div className="bg-emerald-500 text-slate-950 px-5 py-2.5 rounded-2xl text-center shadow-lg shadow-emerald-500/20 w-full sm:w-auto">
                   <span className="text-[10px] uppercase font-bold block">প্রাপ্ত নম্বর</span>
                   <span className="text-2xl font-black">{scoreData.finalScore}</span>
                   <span className="text-[10px] font-bold block">/{examQuestions.length}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-3.5 bg-white dark:bg-slate-950/60 border border-emerald-500/20 rounded-2xl text-center shadow-sm">
-                  <span className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold block">সঠিক (+১.০০)</span>
-                  <strong className="text-xl font-black text-emerald-700 dark:text-emerald-400">{scoreData.correct}টি</strong>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <div className="p-2 sm:p-3.5 bg-white dark:bg-slate-950/60 border border-emerald-500/20 rounded-2xl text-center shadow-sm">
+                  <span className="text-[10px] sm:text-xs text-emerald-700 dark:text-emerald-400 font-semibold block">সঠিক (+১.০০)</span>
+                  <strong className="text-lg sm:text-xl font-black text-emerald-700 dark:text-emerald-400">{scoreData.correct}টি</strong>
                 </div>
-                <div className="p-3.5 bg-white dark:bg-slate-950/60 border border-red-500/20 rounded-2xl text-center shadow-sm">
-                  <span className="text-xs text-red-600 dark:text-red-400 font-semibold block">ভুল (-০.২৫)</span>
-                  <strong className="text-xl font-black text-red-600 dark:text-red-400">{scoreData.wrong}টি</strong>
+                <div className="p-2 sm:p-3.5 bg-white dark:bg-slate-950/60 border border-red-500/20 rounded-2xl text-center shadow-sm">
+                  <span className="text-[10px] sm:text-xs text-red-600 dark:text-red-400 font-semibold block">ভুল (-০.২৫)</span>
+                  <strong className="text-lg sm:text-xl font-black text-red-600 dark:text-red-400">{scoreData.wrong}টি</strong>
                 </div>
-                <div className="p-3.5 bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl text-center shadow-sm">
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold block">উত্তর দাওনি</span>
-                  <strong className="text-xl font-black text-slate-700 dark:text-slate-300">{scoreData.unattempted}টি</strong>
+                <div className="p-2 sm:p-3.5 bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl text-center shadow-sm">
+                  <span className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-semibold block">উত্তর দাওনি</span>
+                  <strong className="text-lg sm:text-xl font-black text-slate-700 dark:text-slate-300">{scoreData.unattempted}টি</strong>
                 </div>
               </div>
             </div>
@@ -281,6 +313,7 @@ const MockExam = () => {
             {examQuestions.map((q, qIdx) => {
               const userChoice = userAnswers[qIdx];
               const isAnswered = userChoice !== undefined;
+              const isBookmarked = bookmarkedIds.includes(q.id);
 
               return (
                 <div key={q.uniqueExamId} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-7 space-y-4 shadow-sm transition-colors">
@@ -289,23 +322,34 @@ const MockExam = () => {
                       প্রশ্ন {qIdx + 1}/{examQuestions.length}
                     </span>
 
-                    {isSubmitted && (
-                      <div>
-                        {!isAnswered ? (
-                          <span className="text-slate-500 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-md text-[11px] font-bold">
-                            উত্তর দাওনি
-                          </span>
-                        ) : userChoice === q.correctAnswer ? (
-                          <span className="text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 border border-emerald-500/30 px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
-                            <FiCheckCircle /> সঠিক (+১.০০)
-                          </span>
-                        ) : (
-                          <span className="text-red-800 dark:text-red-300 bg-red-50 dark:bg-red-950 border border-red-500/30 px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
-                            <FiXCircle /> ভুল উত্তর (-০.২৫)
-                          </span>
-                        )}
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {isSubmitted && (
+                        <div>
+                          {!isAnswered ? (
+                            <span className="text-slate-500 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-md text-[11px] font-bold">
+                              উত্তর দাওনি
+                            </span>
+                          ) : userChoice === q.correctAnswer ? (
+                            <span className="text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 border border-emerald-500/30 px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
+                              <FiCheckCircle /> সঠিক (+১.০০)
+                            </span>
+                          ) : (
+                            <span className="text-red-800 dark:text-red-300 bg-red-50 dark:bg-red-950 border border-red-500/30 px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1">
+                              <FiXCircle /> ভুল উত্তর (-০.২৫)
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Bookmark Button */}
+                      <button 
+                        onClick={() => toggleBookmark(q.id)}
+                        className={`p-1.5 rounded-lg text-lg transition-colors cursor-pointer ${isBookmarked ? 'text-amber-500 bg-amber-50 dark:bg-amber-500/10' : 'text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10'}`}
+                        title="রিভিশন লিস্টে সেভ করুন"
+                      >
+                        <FiBookmark className={isBookmarked ? 'fill-current' : ''} />
+                      </button>
+                    </div>
                   </div>
 
                   <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-relaxed">
